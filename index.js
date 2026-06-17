@@ -1,73 +1,69 @@
-// 1. Данные (скопировано из вашего примера)
-const responses = [
-    [2, 2, 67, 3, 2, 1, 1, 11, 1],
-    [2, 2, 10, 3, 2, 1, 1, 11, 1],
-    [2, 7, 67, 3, 2, 2, 1, 11, 1],
-    [2, 7, 67, 3, 2, 2, 1, 11, 1],
-    [2, 7, 10, 3, 2, 1, 2, 11, 1],
-    [2, 2, 67, 3, 2, 1, 1, 11, 1],
-    [2, 2, 67, 3, 2, 1, 1, 11, 1],
-    [2, 7, 67, 3, 2, 1, 1, 11, 1],
-    [2, 2, 67, 3, 2, 1, 1, 11, 1]
+// ВАЖНО: Замените sampleData на ваш полный массив данных из таблицы в формате JSON
+const sampleData = [
+  { gender: 2, branch: 2, city: 67, dept: 3, category: 2, recommend: 1, ethics: 11 },
+  { gender: 2, branch: 2, city: 10, dept: 3, category: 2, recommend: 1, ethics: 11 },
+  { gender: 7, branch: 67, dept: 3, category: 2, recommend: 2, ethics: 11 },
+  // ... и так далее (добавьте все строки из вашей таблицы)
 ];
 
-// 2. Словари расшифровки
-const dicts = {
-    gender: {1: 'Мужской', 2: 'Женский'},
-    branch: {2: 'Тюмень', 7: 'ГО'},
-    dept: {3: 'Управление ЕКЦ'}
+// Словарь для расшифровки цифр в текст
+const dict = {
+  gender: { 1: 'Мужской', 2: 'Женский' },
+  branch: { 2: 'Тюмень', 3: 'Самара', 4: 'Уфа', 5: 'Красноярск' }, // дополните список
+  recommend: { 10: 'Полностью согласен', 9: 'Скорее согласен', 8: 'Нейтрально', 7: 'Скорее не согласен', 1: 'Категорически не согласен' },
+  ethics: { 11: 'Полностью согласен', 10: 'Скорее согласен', 9: 'Нейтрально' }
 };
 
-// 3. Агрегация данных
-const stats = {
-    total: responses.length,
-    scores: { q6: [], q8: [], q9: [], q10: [] },
-    gender: {}, branch: {}, dept: {}
-};
-
-responses.forEach(row => {
-    // Собираем баллы
-    stats.scores.q6.push(row);
-    stats.scores.q8.push(row);
-    stats.scores.q9.push(row);
-    stats.scores.q10.push(row);
-
-    // Считаем доли категорий
-    ['gender', 'branch', 'dept'].forEach(key => {
-        const val = row[key === 'gender' ? 0 : key === 'branch' ? 1 : 3];
-        stats[key][val] = (stats[key][val] || 0) + 1;
-    });
-});
-
-// 4. Функции для вывода
-function avg(arr) { return (arr.reduce((a,b)=>a+b,0) / arr.length).toFixed(2); }
-function renderStats(id, data) {
-    const total = stats.total;
-    document.getElementById(id).innerHTML = Object.keys(data).map(k => 
-        `${dicts[id.split('-')][k]}: ${data[k]} (\${((data[k]/total)*100).toFixed(1)}%)`
-    ).join('<br>');
+// Функция для расчета среднего
+function getAverage(arr) {
+  return (arr.reduce((sum, val) => sum + val, 0) / arr.length).toFixed(1);
 }
 
-// 5. Отрисовка
-document.getElementById('avg-recommend').textContent = `Средний балл: \${avg(stats.scores.q6)}`;
-document.getElementById('avg-leader').textContent = `Средний балл: \${avg(stats.scores.q8)}`;
-document.getElementById('avg-ethics').textContent = `Средний балл: \${avg(stats.scores.q9)}`;
-document.getElementById('avg-colleagues').textContent = `Средний балл: \${avg(stats.scores.q10)}`;
+// 1. Расчет и вывод среднего по рекомендации
+const recScores = sampleData.map(item => item.recommend);
+document.getElementById('avg-recommend').textContent = getAverage(recScores);
 
-renderStats('gender-stats', stats.gender);
-renderStats('branch-stats', stats.branch);
-renderStats('dept-stats', stats.dept);
+// 2. Статистика по полу
+const genderCount = sampleData.reduce((acc, item) => {
+  acc[dict.gender[item.gender]] = (acc[dict.gender[item.gender]] || 0) + 1;
+  return acc;
+}, {});
+document.getElementById('gender-stats').textContent = 
+  `Мужчин: ${genderCount['Мужской'] || 0}, Женщин: ${genderCount['Женский'] || 0}`;
 
-// 6. Гистограмма (Chart.js)
-const ctx = document.getElementById('recommend-chart').getContext('2d');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-        datasets: [{
-            label: 'Частота ответов',
-            data: [...Array(10)].map((_,i) => stats.scores.q6.filter(x => x === i+1).length),
-            backgroundColor: 'rgba(54, 162, 235, 0.6)'
-        }]
-    },
-    options: { responsive: true }
+// 3. График распределения баллов (Готовность рекомендовать)
+const recLabels = Object.keys(dict.recommend).reverse(); // от 1 до 10
+const recData = recLabels.map(score => sampleData.filter(d => d.recommend == score).length);
+
+new Chart(document.getElementById('recommend-chart'), {
+  type: 'bar',
+  data: {
+    labels: recLabels,
+    datasets: [{
+      data: recData,
+      backgroundColor: 'rgba(54, 162, 235, 0.6)',
+      borderColor: 'rgba(54, 162, 235, 1)',
+      borderWidth: 1
+    }]
+  },
+  options: { responsive: true }
+});
+
+// 4. График по филиалам
+const branchCount = sampleData.reduce((acc, item) => {
+  acc[dict.branch[item.branch]] = (acc[dict.branch[item.branch]] || 0) + 1;
+  return acc;
+}, {});
+
+new Chart(document.getElementById('branch-chart'), {
+  type: 'pie',
+  data: {
+    labels: Object.keys(branchCount),
+    datasets: [{
+      data: Object.values(branchCount),
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+      hoverOffset: 4
+    }]
+  },
+  options: { responsive: true }
+});
