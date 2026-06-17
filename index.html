@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Дашборд опроса сотрудников</title>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Дашборд результатов опроса</h1>
+
+        <!-- Секция 1: Карта метрик -->
+        <div class="metrics-grid">
+            <div class="metric-box">
+                <h3>Готовность рекомендовать (Q6)</h3>
+                <div id="avg-recommend"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Поддержка Руководителя (Q8)</h3>
+                <div id="avg-leader"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Соблюдение ценностей (Q9)</h3>
+                <div id="avg-ethics"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Поддержка коллег (Q10)</h3>
+                <div id="avg-colleagues"></div>
+            </div>
+        </div>
+
+        <!-- Секция 2: Статистика -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h3>Пол</h3>
+                <div id="gender-stats"></div>
+            </div>
+            <div class="stat-box">
+                <h3>Филиал</h3>
+                <div id="branch-stats"></div>
+            </div>
+            <div class="stat-box">
+                <h3>Управление</h3>
+                <div id="dept-stats"></div>
+            </div>
+        </div>
+
+        <!-- Секция 3: Гистограмма -->
+        <div class="chart-box">
+            <h3>Распределение баллов (Готовность рекомендовать)</h3>
+            <canvas
